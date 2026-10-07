@@ -1,0 +1,46 @@
+name: Build OrçaElétrica APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Descompactar projeto
+        run: |
+          unzip -o OrcaEletrica_APK_Base_V4.zip -d projeto
+
+      - name: Verificar estrutura
+        run: |
+          find projeto -maxdepth 3 -type f | head -100
+
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compilar APK
+        run: |
+          cd projeto
+          gradle assembleDebug --no-daemon
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaEletrica-APK
+          path: projeto/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
